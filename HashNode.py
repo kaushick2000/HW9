@@ -1,7 +1,7 @@
 import math
 
 # Node for the doubly linked list
-class HashNode:
+class EntryNode:
     def __init__(self, key, value):
         self.key = key
         self.value = value
@@ -9,14 +9,14 @@ class HashNode:
         self.prev = None
 
 # Doubly linked list for chaining in each bucket
-class DoublyLinkedList:
+class LinkedList:
     def __init__(self):
         self.head = None
         self.tail = None
 
     # Append a key-value pair into the list
     def append(self, key, value):
-        new_node = HashNode(key, value)
+        new_node = EntryNode(key, value)
         if not self.head:  # If list is empty
             self.head = self.tail = new_node
         else:
@@ -25,7 +25,7 @@ class DoublyLinkedList:
             self.tail = new_node
 
     # Retrieve a node by key
-    def retrieve(self, key):
+    def find(self, key):
         current = self.head
         while current:
             if current.key == key:
@@ -33,8 +33,8 @@ class DoublyLinkedList:
             current = current.next
         return None
 
-    # Delete a node by key
-    def delete(self, key):
+    # Remove a node by key
+    def remove(self, key):
         current = self.head
         while current:
             if current.key == key:
@@ -59,23 +59,23 @@ class DoublyLinkedList:
         return count
 
 # Hash table class
-class HashMap:
+class MyHashMap:
     def __init__(self, initial_capacity=8):
         self.capacity = initial_capacity
         self.size = 0
         self.load_factor = 0.75
         self.shrink_factor = 0.25
-        self.buckets = [DoublyLinkedList() for _ in range(self.capacity)]
+        self.buckets = [LinkedList() for _ in range(self.capacity)]
 
     # Compute hash using the multiplication method
-    def compute_hash(self, key):
+    def _hash_function(self, key):
         A = (math.sqrt(5) - 1) / 2  # Golden ratio constant for multiplication method
         return int(self.capacity * (key * A % 1))
 
     # Rehash all elements when resizing the table
-    def perform_rehash(self, new_capacity):
+    def _rehash(self, new_capacity):
         old_buckets = self.buckets
-        self.buckets = [DoublyLinkedList() for _ in range(new_capacity)]
+        self.buckets = [LinkedList() for _ in range(new_capacity)]
         self.capacity = new_capacity
         self.size = 0  # Reset size and reinsert all elements
 
@@ -83,22 +83,22 @@ class HashMap:
         for bucket in old_buckets:
             current = bucket.head
             while current:
-                self.add(current.key, current.value)
+                self.put(current.key, current.value)
                 current = current.next
 
     # Adjust table size (expand or shrink) if needed
-    def adjust_size(self):
+    def _resize(self):
         # If the load factor is exceeded, double the capacity
         if self.size >= self.capacity * self.load_factor:
-            self.perform_rehash(self.capacity * 2)
+            self._rehash(self.capacity * 2)
         # If the table is too empty, shrink it (but keep a minimum size)
         elif self.size <= self.capacity * self.shrink_factor and self.capacity > 8:
-            self.perform_rehash(self.capacity // 2)
+            self._rehash(self.capacity // 2)
 
-    # Add a key-value pair to the hash table
-    def add(self, key, value):
-        index = self.compute_hash(key)
-        node = self.buckets[index].retrieve(key)
+    # Insert a key-value pair into the hash table
+    def put(self, key, value):
+        index = self._hash_function(key)
+        node = self.buckets[index].find(key)
 
         # Update if the key already exists
         if node:
@@ -107,22 +107,22 @@ class HashMap:
             # Otherwise append it to the bucket list
             self.buckets[index].append(key, value)
             self.size += 1
-            self.adjust_size()  # Resize if necessary
+            self._resize()  # Resize if necessary
 
-    # Remove a key-value pair from the hash table
-    def remove_key(self, key):
-        index = self.compute_hash(key)
-        node = self.buckets[index].retrieve(key)
+    # Delete a key-value pair from the hash table
+    def remove(self, key):
+        index = self._hash_function(key)
+        node = self.buckets[index].find(key)
 
         if node:
-            self.buckets[index].delete(key)
+            self.buckets[index].remove(key)
             self.size -= 1
-            self.adjust_size()  # Resize if necessary
+            self._resize()  # Resize if necessary
 
     # Get the value associated with a key
-    def get_value(self, key):
-        index = self.compute_hash(key)
-        node = self.buckets[index].retrieve(key)
+    def get(self, key):
+        index = self._hash_function(key)
+        node = self.buckets[index].find(key)
         if node:
             return node.value
         else:
@@ -138,29 +138,29 @@ class HashMap:
                 current = current.next
             print("None")
 
-# Testing the HashMap
+# Testing the MyHashMap
 if __name__ == "__main__":
-    hash_map = HashMap()
+    my_hash_map = MyHashMap()
 
     # Add key-value pairs
-    hash_map.add(1, 10)
-    hash_map.add(2, 15)
-    hash_map.add(3, 20)
-    hash_map.add(4, 30)
-    hash_map.add(12, 120)
+    my_hash_map.put(10, 100)
+    my_hash_map.put(20, 200)
+    my_hash_map.put(30, 300)
+    my_hash_map.put(40, 400)
+    my_hash_map.put(15, 150)
 
     # Display the table
-    hash_map.display()
+    my_hash_map.display()
 
     # Search for a key
-    print(f"Search key 2: {hash_map.get_value(2)}")
+    print(f"Search key 20: {my_hash_map.get(20)}")
 
     # Remove a key
-    hash_map.remove_key(2)
-    hash_map.display()
+    my_hash_map.remove(20)
+    my_hash_map.display()
 
     # Try to search for a removed key
     try:
-        print(hash_map.get_value(2))
+        print(my_hash_map.get(20))
     except KeyError as e:
         print(e)
