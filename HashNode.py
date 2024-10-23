@@ -144,9 +144,9 @@ if __name__ == "__main__":
 
     # Add key-value pairs
     hash_map.add(1, 10)
-    hash_map.add(2, 20)
-    hash_map.add(3, 30)
-    hash_map.add(4, 40)
+    hash_map.add(2, 15)
+    hash_map.add(3, 20)
+    hash_map.add(4, 30)
     hash_map.add(12, 120)
 
     # Display the table
